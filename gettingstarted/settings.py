@@ -50,14 +50,20 @@ DEBUG = os.environ.get("ENVIRONMENT") == "development"
 # also explicitly exclude CI:
 # https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
 IS_HEROKU_APP = "DYNO" in os.environ and "CI" not in os.environ
-
+# Zawsze bazowa lista hostów (lokalnie + Render)
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'paas-bm-lab0.onrender.com']
+# Jeśli używasz Heroku i chcesz wildcard, możesz opcjonalnie rozszerzyć:
+if os.environ.get('IS_HEROKU_APP') == '1':
+ ALLOWED_HOSTS.append('*')
+# Dynamicznie z env (dla przyszłości, np. ALLOWED_HOSTS z Render)
+if os.environ.get('ALLOWED_HOSTS'):
+ ALLOWED_HOSTS.extend(os.environ.get('ALLOWED_HOSTS').split(','))
 if IS_HEROKU_APP:
-    # On Heroku, it's safe to use a wildcard for `ALLOWED_HOSTS`, since the Heroku router performs
-    # validation of the Host header in the incoming HTTP request. On other platforms you may need to
-    # list the expected hostnames explicitly in production to prevent HTTP Host header attacks. See:
-    # https://docs.djangoproject.com/en/6.0/ref/settings/#std-setting-ALLOWED_HOSTS
-    ALLOWED_HOSTS = ["*"]
-
+ # On Heroku, it's safe to use a wildcard for `ALLOWED_HOSTS`, since the Heroku router performs
+ # validation of the Host header in the incoming HTTP request. On other platforms you may need to
+ # list the expected hostnames explicitly in production to prevent HTTP Host header attacks. See:
+ # https://docs.djangoproject.com/en/6.0/ref/settings/#std-setting-ALLOWED_HOSTS
+ #ALLOWED_HOSTS = ["*"]
     # Redirect all non-HTTPS requests to HTTPS. This requires that:
     # 1. Your app has a TLS/SSL certificate, which all `*.herokuapp.com` domains do by default.
     #    When using a custom domain, you must configure one. See:
@@ -208,7 +214,7 @@ STORAGES = {
 WHITENOISE_KEEP_ONLY_HASHED_FILES = True
 
 # Customise the default logging config, since by default full Django logs are only emitted when
-# `DEBUG=True` (which otherwise makes diagnosing errors much harder in production):
+DEBUG=True
 # https://docs.djangoproject.com/en/6.0/ref/logging/#default-logging-configuration
 # For more advanced logging you may want to try: https://django-structlog.readthedocs.io
 LOGGING = {
